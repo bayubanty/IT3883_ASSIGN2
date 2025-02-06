@@ -1,0 +1,12 @@
+def calculate_averages(filepath):
+    students = []
+
+    with open(filepath, 'r') as file:
+        for line in file:
+            name, *scores = line.split()
+            students.append((name, sum(map(int, scores)) / len(scores)))
+
+    for name, avg in sorted(students, key=lambda x: x[1], reverse=True):
+        print(f"{name} {avg:.2f}")
+
+calculate_averages("/Users/bayoawoh/PycharmProjects/pythonProject22/records.txt")
