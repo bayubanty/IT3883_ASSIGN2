@@ -1,0 +1,45 @@
+import sqlite3  # Import  SQLite database
+import csv      # Import  CSV files
+
+# Connect to SQLite database
+conn = sqlite3.connect("temperature.db")
+cursor = conn.cursor()
+
+# Creating table to store temperature readings
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS TemperatureReadings (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT,     -- Unique ID for each entry
+    Day_Of_Week TEXT,                         -- Day of the week (e.g., Sunday)
+    Temperature_Value REAL                    -- Temperature reading as a float
+)
+""")
+
+# Reading input file and insert data
+with open("temperature_data.csv", "r") as file:
+    reader = csv.reader(file, delimiter=" ")
+    for row in reader:
+        if len(row) >= 2:
+            day = row[0].strip()
+            try:
+                temperature = float(row[1].strip())  # Convert temperature to float
+                cursor.execute("""
+                    INSERT INTO TemperatureReadings (Day_Of_Week, Temperature_Value)
+                    VALUES (?, ?)
+                """, (day, temperature))       # Insert data
+            except ValueError:
+                print(f"Invalid temperature value: {row[1]}")  # Handling of bad temperature entries
+
+# Query and print the average temperature of the day
+for day in ["Sunday", "Thursday"]:
+    cursor.execute("""
+        SELECT AVG(Temperature_Value) FROM TemperatureReadings WHERE Day_Of_Week = ?
+    """, (day,))
+    result = cursor.fetchone()[0]
+    if result is not None:
+        print(f"Average temperature on {day}: {result:.2f}°F")
+    else:
+        print(f"No data for {day}")
+
+# Save changes and close the database
+conn.commit()
+conn.close()
